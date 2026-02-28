@@ -18,8 +18,8 @@ from models.renderer import NeuSRenderer
 
 
 class Runner:
-    def __init__(self, conf_path, mode='train', case='CASE_NAME', is_continue=False):
-        self.device = torch.device('cuda')
+    def __init__(self, conf_path, mode='train', case='CASE_NAME', is_continue=False, n_views=0):
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         # Configuration
         self.conf_path = conf_path
@@ -30,6 +30,8 @@ class Runner:
 
         self.conf = ConfigFactory.parse_string(conf_text)
         self.conf['dataset.data_dir'] = self.conf['dataset.data_dir'].replace('CASE_NAME', case)
+        if n_views > 0:
+            self.conf['dataset.n_views'] = n_views
         self.base_exp_dir = self.conf['general.base_exp_dir']
         os.makedirs(self.base_exp_dir, exist_ok=True)
         self.dataset = Dataset(self.conf['dataset'])
@@ -370,7 +372,9 @@ class Runner:
 if __name__ == '__main__':
     print('Hello Wooden')
 
-    torch.set_default_tensor_type('torch.cuda.FloatTensor')
+    torch.set_default_tensor_type('torch.FloatTensor')
+    if torch.cuda.is_available():
+        torch.set_default_tensor_type('torch.cuda.FloatTensor')
 
     FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
     logging.basicConfig(level=logging.DEBUG, format=FORMAT)
@@ -382,11 +386,14 @@ if __name__ == '__main__':
     parser.add_argument('--is_continue', default=False, action="store_true")
     parser.add_argument('--gpu', type=int, default=0)
     parser.add_argument('--case', type=str, default='')
+    parser.add_argument('--n_views', type=int, default=0,
+                        help='Number of training views to use (0 = all views)')
 
     args = parser.parse_args()
 
-    torch.cuda.set_device(args.gpu)
-    runner = Runner(args.conf, args.mode, args.case, args.is_continue)
+    if torch.cuda.is_available():
+        torch.cuda.set_device(args.gpu)
+    runner = Runner(args.conf, args.mode, args.case, args.is_continue, n_views=args.n_views)
 
     if args.mode == 'train':
         runner.train()
