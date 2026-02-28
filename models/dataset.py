@@ -38,7 +38,7 @@ class Dataset:
     def __init__(self, conf):
         super(Dataset, self).__init__()
         print('Load data: Begin')
-        self.device = torch.device('cuda')
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.conf = conf
 
         self.data_dir = conf.get_string('data_dir')
@@ -50,19 +50,29 @@ class Dataset:
 
         camera_dict = np.load(os.path.join(self.data_dir, self.render_cameras_name))
         self.camera_dict = camera_dict
-        self.images_lis = sorted(glob(os.path.join(self.data_dir, 'image/*.png')))
+        all_images_lis = sorted(glob(os.path.join(self.data_dir, 'image/*.png')))
+        n_views = conf.get_int('n_views', default=0)
+        if n_views > 0:
+            step = max(1, len(all_images_lis) // n_views)
+            self.images_lis = all_images_lis[::step][:n_views]
+            self._image_indices = list(range(0, len(all_images_lis), step))[:n_views]
+        else:
+            self.images_lis = all_images_lis
+            self._image_indices = list(range(len(all_images_lis)))
         self.n_images = len(self.images_lis)
         self.images_np = np.stack([cv.imread(im_name) for im_name in self.images_lis]) / 256.0
         self.masks_lis = sorted(glob(os.path.join(self.data_dir, 'mask/*.png')))
+        if n_views > 0:
+            self.masks_lis = [self.masks_lis[i] for i in self._image_indices if i < len(self.masks_lis)]
         self.masks_np = np.stack([cv.imread(im_name) for im_name in self.masks_lis]) / 256.0
 
         # world_mat is a projection matrix from world to image
-        self.world_mats_np = [camera_dict['world_mat_%d' % idx].astype(np.float32) for idx in range(self.n_images)]
+        self.world_mats_np = [camera_dict['world_mat_%d' % idx].astype(np.float32) for idx in self._image_indices]
 
         self.scale_mats_np = []
 
         # scale_mat: used for coordinate normalization, we assume the scene to render is inside a unit sphere at origin.
-        self.scale_mats_np = [camera_dict['scale_mat_%d' % idx].astype(np.float32) for idx in range(self.n_images)]
+        self.scale_mats_np = [camera_dict['scale_mat_%d' % idx].astype(np.float32) for idx in self._image_indices]
 
         self.intrinsics_all = []
         self.pose_all = []
