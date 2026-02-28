@@ -40,15 +40,15 @@ pip install -r requirements.txt
 <details>
   <summary> Dependencies (click to expand) </summary>
 
-  - torch==1.8.0
-  - opencv_python==4.5.2.52
-  - trimesh==3.9.8 
-  - numpy==1.19.2
-  - pyhocon==0.3.57
-  - icecream==2.1.0
-  - tqdm==4.50.2
-  - scipy==1.7.0
-  - PyMCubes==0.1.2
+  - torch>=1.13.0
+  - opencv-python>=4.6.0
+  - trimesh>=3.15.0
+  - numpy>=1.21.0,<2.0
+  - pyhocon>=0.3.59
+  - icecream>=2.1.2
+  - tqdm>=4.64.0
+  - scipy>=1.9.0
+  - PyMCubes>=0.1.2
 
 </details>
 
@@ -81,6 +81,22 @@ python exp_runner.py --mode interpolate_<img_idx_0>_<img_idx_1> --conf <config_f
 ```
 
 The corresponding image set of view interpolation can be found in `exp/<case_name>/<exp_name>/render/`.
+
+- **Training on DTU dataset**
+
+```shell
+python exp_runner.py --mode train --conf ./confs/dtu.conf --case <case_name>
+```
+
+Use `confs/dtu_womask.conf` to train without mask supervision, `confs/dtu_scale_small.conf` / `confs/dtu_scale_large.conf` for scale-sensitivity experiments.
+
+- **Training with a subset of views**
+
+Use `--n_views` to subsample the input images evenly (e.g. for missing-views robustness experiments):
+
+```shell
+python exp_runner.py --mode train --conf ./confs/dtu.conf --case <case_name> --n_views 25
+```
 
 ### Train NeuS with your custom data
 
