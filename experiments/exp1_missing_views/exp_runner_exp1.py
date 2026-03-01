@@ -1,4 +1,14 @@
 import os
+import sys
+
+# ---------------------------------------------------
+# Add repository root to Python path
+# ---------------------------------------------------
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, "../.."))
+sys.path.insert(0, REPO_ROOT)
+# ---------------------------------------------------
+
 import argparse
 import torch
 from pyhocon import ConfigFactory
