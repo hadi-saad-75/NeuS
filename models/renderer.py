@@ -305,14 +305,14 @@ class NeuSRenderer:
         if perturb_overwrite >= 0:
             perturb = perturb_overwrite
         if perturb > 0:
-            t_rand = (torch.rand([batch_size, 1]) - 0.5)
+            t_rand = (torch.rand([batch_size, 1], device=device) - 0.5)
             z_vals = z_vals + t_rand * 2.0 / self.n_samples
 
             if self.n_outside > 0:
                 mids = .5 * (z_vals_outside[..., 1:] + z_vals_outside[..., :-1])
                 upper = torch.cat([mids, z_vals_outside[..., -1:]], -1)
                 lower = torch.cat([z_vals_outside[..., :1], mids], -1)
-                t_rand = torch.rand([batch_size, z_vals_outside.shape[-1]])
+                t_rand = torch.rand([batch_size, z_vals_outside.shape[-1]], device=device)
                 z_vals_outside = lower[None, :] + (upper - lower)[None, :] * t_rand
 
         if self.n_outside > 0:
