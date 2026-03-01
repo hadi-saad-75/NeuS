@@ -64,7 +64,11 @@ class Dataset:
         self.masks_lis = sorted(glob(os.path.join(self.data_dir, 'mask/*.png')))
         if n_views > 0:
             self.masks_lis = [self.masks_lis[i] for i in self._image_indices if i < len(self.masks_lis)]
-        self.masks_np = np.stack([cv.imread(im_name) for im_name in self.masks_lis]) / 256.0
+        if self.masks_lis:
+            self.masks_np = np.stack([cv.imread(im_name) for im_name in self.masks_lis]) / 256.0
+        else:
+            # No mask directory found; use all-white masks (unmasked setting)
+            self.masks_np = np.ones_like(self.images_np)
 
         # world_mat is a projection matrix from world to image
         self.world_mats_np = [camera_dict['world_mat_%d' % idx].astype(np.float32) for idx in self._image_indices]
