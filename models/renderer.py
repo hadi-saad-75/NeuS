@@ -286,10 +286,16 @@ class NeuSRenderer:
     def render(self, rays_o, rays_d, near, far, perturb_overwrite=-1, background_rgb=None, cos_anneal_ratio=0.0):
         batch_size = len(rays_o)
         sample_dist = 2.0 / self.n_samples   # Assuming the region of interest is a unit sphere
-        z_vals = torch.linspace(0.0, 1.0, self.n_samples)
+        device = near.device
+        
+        z_vals = torch.linspace(0.0, 1.0, self.n_samples, device=device)
         z_vals = near + (far - near) * z_vals[None, :]
 
-        z_vals_outside = None
+        z_vals_outside = torch.linspace(
+            1e-3,
+            1.0 - 1.0 / (self.n_outside + 1.0),
+            self.n_outside,
+            device=device)
         if self.n_outside > 0:
             z_vals_outside = torch.linspace(1e-3, 1.0 - 1.0 / (self.n_outside + 1.0), self.n_outside)
 
