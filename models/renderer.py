@@ -382,7 +382,7 @@ class NeuSRenderer:
         gradients = ret_fine["gradients"]
 
         n_samples_total = weights.shape[1]
-        s_val = ret_fine["s_val"].reshape(batch_size, n_samples_total).mean(dim=-1, keepdim=True)
+        s_val = ret_fine["s_val"].view(batch_size, -1).mean(dim=1, keepdim=True)
 
         return {
             "color_fine": color_fine,
