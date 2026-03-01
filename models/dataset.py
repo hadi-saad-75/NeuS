@@ -43,7 +43,7 @@ class Dataset:
         super(Dataset, self).__init__()
         print("Load data: Begin")
 
-        self.device = torch.device("cuda")
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.conf = conf
 
         self.data_dir = conf.get_string("data_dir")
